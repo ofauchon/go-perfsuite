@@ -45,9 +45,7 @@ func NewIuser(pInj *Injector) *Iuser {
 /*
  *  performance wrapped functions
  */
-func (i *Iuser) k_CounterStart(L *lua.LState) int {
-	tName := L.ToString(1)
-
+func (i *Iuser) CounterStart(tName string){
 	if _, ok := i.Counters[tName]; !ok {
 		tCount := Counter{}
 		tCount.Start = time.Now().UnixNano()
@@ -55,54 +53,61 @@ func (i *Iuser) k_CounterStart(L *lua.LState) int {
 	} else {
 		fmt.Printf("WARN: Counter '%s' already exisits\n", tName)
 	}
+}
+func (i *Iuser) k_CounterStart(L *lua.LState) int{
+	tName := L.ToString(1)
+	i.CounterStart(tName) 
 	return 1
 }
 
-func (i *Iuser) k_CounterEnd(L *lua.LState) int {
-	tName := L.ToString(1)
-
+func (i *Iuser) CounterEnd(tName string) {
 	if xx, ok := i.Counters[tName]; ok {
 		xx.End = time.Now().UnixNano()
 		fmt.Printf("%s : End counter %s: Delta: %d ms\n", i.Uuid, tName, (xx.End-xx.Start) / int64(time.Millisecond) )
 	} else {
 		fmt.Printf("WARN: Counter '%s' can't end while not started\n", tName)
 	}
-	return 1
-
 }
+func (i *Iuser) k_CounterEnd(L *lua.LState) int {
+	tName := L.ToString(1)
+	i.CounterEnd(tName) 
+	return 1
+}
+
+
+
 
 /*
  *  Entry points
  */
 func (i *Iuser) LoadScenarioString(pScenario string) {
 	i.Scenario=pScenario
-	//fmt.Printf("XXXX %s XXXX\n", i.Scenario)
 	if err := i.LuaState.DoString(pScenario); err != nil {
 		panic(err)
 	}
 }
 
 func (i *Iuser) DoInit() {
-//	fmt.Printf("%s : DoInit start\n", i.Uuid)
+	i.CounterStart(i.Uuid + "_DoInit"); 
 	if err := i.LuaState.DoString(`rinit()`); err != nil {
 		panic(err)
 	}
-//	fmt.Printf("%s : DoInit end\n", i.Uuid)
+	i.CounterEnd(i.Uuid + "_DoInit"); 
 }
 
 func (i *Iuser) DoRun() {
-//	fmt.Printf("%s : DoRun start\n", i.Uuid)
+	i.CounterStart(i.Uuid + "_DoRun"); 
 	i.Inj.wg.Add(1)
 	if err := i.LuaState.DoString(`rrun()`); err != nil {
 		panic(err)
 	}
 	i.Inj.wg.Done()
-//	fmt.Printf("%s : DoRun end\n", i.Uuid)
+	i.CounterEnd(i.Uuid + "_DoRun"); 
 }
 func (i *Iuser) DoStop() {
-//	fmt.Printf("%s : DoStop start\n", i.Uuid)
+	i.CounterStart(i.Uuid + "_DoStart"); 
 	if err := i.LuaState.DoString(`rstop()`); err != nil {
 		panic(err)
 	}
-//	fmt.Printf("%s : DoStop end\n", i.Uuid)
+	i.CounterEnd(i.Uuid + "_DoStart"); 
 }

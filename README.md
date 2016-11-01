@@ -5,19 +5,23 @@ Performance Testing Suite in Go
 
  * running
 
+``
 go run run_injector.go  			To run 10 concurent virtual users (default
 go run run_injector.go -vuser 20    To run 20 Concurrent vusers
-
+```
 
  * Profiling 
 
 
+Build and generate cpu and memory profile
+
+```
 go build run_injector.go
 ./run_injector -cpuprofile cpu.prof -memprofile mem.prof
-go tool pprof run_injector cpu.prof
+```
 
-bash-3.2$ go tool pprof run_injector cpu.prof
-Entering interactive mode (type "help" for commands)
+```
+$ go tool pprof run_injector cpu.prof
 (pprof) top
 400ms of 520ms total (76.92%)
 Showing top 10 nodes out of 222 (cum >= 10ms)
@@ -34,5 +38,8 @@ Showing top 10 nodes out of 222 (cum >= 10ms)
       10ms  1.92% 76.92%       10ms  1.92%  nanotime
 
 
+
+go tool pprof -alloc_objects run_injector mem.prof
+```
 
 
