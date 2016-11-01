@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/yuin/gopher-lua"
 	"github.com/cjoudrey/gluahttp"
+	"github.com/nu7hatch/gouuid"
 	"net/http"
 	"time"
 )
@@ -14,15 +15,23 @@ type Counter struct {
 }
 
 type Iuser struct {
+	Uuid	 string
 	Scenario string
 	NRuns    int
 	Id       int
+	Inj	*Injector
 	Counters map[string]Counter
 	LuaState *lua.LState
 }
 
-func NewIuser() *Iuser {
-	newI := &Iuser{Counters: make(map[string]Counter)}
+func NewIuser(pInj *Injector) *Iuser {
+	newI := &Iuser{Counters: make(map[string]Counter), }
+	newI.Inj=pInj
+	u4, err := uuid.NewV4()
+	if err!=nil {
+		panic("Can't gen uuid")
+	}
+	newI.Uuid=u4.String()
 	Lptr := lua.NewState()
 	defer Lptr.Close()
 
@@ -38,7 +47,6 @@ func NewIuser() *Iuser {
  */
 func (i *Iuser) k_CounterStart(L *lua.LState) int {
 	tName := L.ToString(1)
-	fmt.Printf("DBG: 1 %s\n", tName)
 
 	if _, ok := i.Counters[tName]; !ok {
 		tCount := Counter{}
@@ -55,7 +63,7 @@ func (i *Iuser) k_CounterEnd(L *lua.LState) int {
 
 	if xx, ok := i.Counters[tName]; ok {
 		xx.End = time.Now().UnixNano()
-		fmt.Printf("End counter %s: Delta: %d\n", tName, xx.End-xx.Start)
+		fmt.Printf("%s : End counter %s: Delta: %d ms\n", i.Uuid, tName, (xx.End-xx.Start) / int64(time.Millisecond) )
 	} else {
 		fmt.Printf("WARN: Counter '%s' can't end while not started\n", tName)
 	}
@@ -66,7 +74,6 @@ func (i *Iuser) k_CounterEnd(L *lua.LState) int {
 /*
  *  Entry points
  */
-
 func (i *Iuser) LoadScenarioString(pScenario string) {
 	i.Scenario=pScenario
 	//fmt.Printf("XXXX %s XXXX\n", i.Scenario)
@@ -76,18 +83,26 @@ func (i *Iuser) LoadScenarioString(pScenario string) {
 }
 
 func (i *Iuser) DoInit() {
+//	fmt.Printf("%s : DoInit start\n", i.Uuid)
 	if err := i.LuaState.DoString(`rinit()`); err != nil {
 		panic(err)
 	}
+//	fmt.Printf("%s : DoInit end\n", i.Uuid)
 }
 
 func (i *Iuser) DoRun() {
+//	fmt.Printf("%s : DoRun start\n", i.Uuid)
+	i.Inj.wg.Add(1)
 	if err := i.LuaState.DoString(`rrun()`); err != nil {
 		panic(err)
 	}
+	i.Inj.wg.Done()
+//	fmt.Printf("%s : DoRun end\n", i.Uuid)
 }
 func (i *Iuser) DoStop() {
+//	fmt.Printf("%s : DoStop start\n", i.Uuid)
 	if err := i.LuaState.DoString(`rstop()`); err != nil {
 		panic(err)
 	}
+//	fmt.Printf("%s : DoStop end\n", i.Uuid)
 }

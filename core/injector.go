@@ -1,29 +1,33 @@
 package core
 
+import	"sync"
+
 type Injector struct {
 	NUsers int
 	Users  []*Iuser
+	wg	sync.WaitGroup
 }
 
 func (inj *Injector) Run() {
 
-	for k := 0; k < 10; k++ {
-		u := NewIuser()
-		tScenario :=`
+	for k := 0; k < inj.NUsers; k++ {
+		u := NewIuser(inj)
+
+
+// ------ START LUA
+	tScenario :=`
 
 
 function rinit()
-  print "Lua rinit()"
   local http = require("http")
 end
 
 
 function rrun()
-  print "Lua Start rrun()"
   k_CounterStart("test1")
 
   local http = require("http")
-  response, error_message = http.request("GET", "http://google.com", {
+  response, error_message = http.request("GET", "http://www.oflabs.com", {
     query="q=test",
     headers={
         Accept="*/*"
@@ -32,21 +36,22 @@ function rrun()
 --  print(response.body)
 
   k_CounterEnd("test1")
-  print "Lua End rrun()"
 end 
 
 
 function rstop()
-  print "Lua rstop()"
 end
 `
+// ------ END LUA
 
         u.LoadScenarioString(tScenario)
 	inj.Users = append(inj.Users, u)
 
 	u.DoInit()
-	u.DoRun()
-	u.DoStop()
+	go u.DoRun()
+	//u.DoStop()
+
+	inj.wg.Wait();
 
 	}
 
