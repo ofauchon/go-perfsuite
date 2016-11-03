@@ -88,26 +88,26 @@ func (i *Iuser) LoadScenarioString(pScenario string) {
 }
 
 func (i *Iuser) DoInit() {
-	i.CounterStart(i.Uuid + "_DoInit"); 
+	//i.CounterStart(i.Uuid + "_DoInit"); 
 	if err := i.LuaState.DoString(`rinit()`); err != nil {
 		panic(err)
 	}
-	i.CounterEnd(i.Uuid + "_DoInit"); 
+	//i.CounterEnd(i.Uuid + "_DoInit"); 
 }
 
 func (i *Iuser) DoRun() {
-	i.CounterStart(i.Uuid + "_DoRun"); 
+	//i.CounterStart(i.Uuid + "_DoRun"); 
 	i.Inj.wg.Add(1)
 	if err := i.LuaState.DoString(`rrun()`); err != nil {
 		panic(err)
 	}
 	i.Inj.wg.Done()
-	i.CounterEnd(i.Uuid + "_DoRun"); 
+	//i.CounterEnd(i.Uuid + "_DoRun"); 
 }
 func (i *Iuser) DoStop() {
-	i.CounterStart(i.Uuid + "_DoStart"); 
+	//i.CounterStart(i.Uuid + "_DoStart"); 
 	if err := i.LuaState.DoString(`rstop()`); err != nil {
 		panic(err)
 	}
-	i.CounterEnd(i.Uuid + "_DoStart"); 
+	//i.CounterEnd(i.Uuid + "_DoStart"); 
 }
