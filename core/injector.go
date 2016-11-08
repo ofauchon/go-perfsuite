@@ -1,26 +1,26 @@
 package core
 
-import	"sync"
-import	"fmt"
+import "sync"
+import "fmt"
 
 type Injector struct {
-	NUsers 		int
-	Users  		[]*Iuser
-	wg			sync.WaitGroup
-	Scenario	string
+	NUsers   int
+	Users    []*Iuser
+	wg       sync.WaitGroup
+	Scenario string
 
-	Stat 		*StatStack
+	Stat *StatStack
 }
 
 func NewInjector() *Injector {
-	i:=Injector{}
-	i.Stat= NewStatStack()
+	i := Injector{}
+	i.Stat = NewStatStack()
 	return (&i)
 }
 
 func (inj *Injector) Initialize(pUserCount int, pScenario string) {
-	inj.NUsers=pUserCount
-	inj.Scenario=pScenario
+	inj.NUsers = pUserCount
+	inj.Scenario = pScenario
 	for k := 0; k < inj.NUsers; k++ {
 		u := NewIuser(inj)
 		u.LoadScenarioString(inj.Scenario)
@@ -35,10 +35,9 @@ func (inj *Injector) Run() {
 
 	go inj.Stat.DoRun()
 
-	for i:=0; i< inj.NUsers;i++ {
+	for i := 0; i < inj.NUsers; i++ {
 		u := inj.Users[i]
 		go u.DoRun()
 	}
-	inj.wg.Wait();
+	inj.wg.Wait()
 }
-

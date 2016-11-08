@@ -1,42 +1,97 @@
+// Package core provide main components of go-perfsuite project
 package core
 
 import "fmt"
+import "log"
 import "time"
+import "github.com/influxdata/influxdb/client/v2"
+
+// pause_ms is the delay in millis between two cycles in DoRun() routine
+const pause_ms int = 500
+const influx_db string = "perfsuite"
+const influx_user string = "username"
+const influx_pass string = "password"
 
 type StatStack struct {
-	Addr 		string
-	Db			string
-	User		string
-	Pass		string
-	
+	Addr string
+	Db   string
+	User string
+	Pass string
+
 	values []Stat
-	count	int
+	count  int
 }
 
-type Stat struct{
-	name	string
-	value	float64
+type Stat struct {
+	name  string
+	value float64
 }
-	
 
+// NewStatStack returns instance of StatStack structure
 func NewStatStack() *StatStack {
-	return &StatStack{ values: make([]Stat, 0) , count: 0 }
+	return &StatStack{values: make([]Stat, 0), count: 0}
 }
 
-
+// Push adds new statistic to the StatStack buffer
+// The new statistic is the couple (name,value)
 func (i *StatStack) Push(pName string, pVal float64) {
-	i.values=append(i.values,Stat{name: pName, value: pVal})
+	i.values = append(i.values, Stat{name: pName, value: pVal})
 }
 
-func (i *StatStack) DoRun() {
-	fmt.Println("StatStack Started")
-	for {
-		if (len(i.values)>0){
-			fmt.Printf("StatStack Run: %d in stack\n", len(i.values))
+func (i *StatStack) FlushInflux() {
+
+	cli, err := client.NewHTTPClient(client.HTTPConfig{
+		Addr:     "http://localhost:8086",
+		Username: influx_user,
+		Password: influx_pass,
+	})
+
+	if err != nil {
+		log.Fatalln("Can't create HTTPClient err:", err)
+	}
+
+	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  influx_db,
+		Precision: "us",
+	})
+
+	if err != nil {
+		log.Fatalln("Can't create BatchPoints: ", err)
+	}
+
+	for z := range i.values {
+		stat := i.values[z]
+
+		tags := map[string]string{"metric": stat.name}
+
+		fields := map[string]interface{}{"value": stat.value}
+
+		fmt.Printf("StatStack : FlushInflux: Add point (%s,%f)\n", stat.name, stat.value)
+		point, err := client.NewPoint("stats", tags, fields)
+		if err != nil {
+			log.Fatalln("Can't create Point: ", err)
 		}
-		fmt.Printf("StatStack Run: pause\n")
-		time.Sleep(300*time.Millisecond)
+		bp.AddPoint(point)
+	}
+
+	err = cli.Write(bp)
+
+	if err != nil {
+		log.Fatalln("Can't write batchpoints to InfluxDB: ", err)
+	}
+
+}
+
+// DoRun is the main loop that will pop the stats from the buffer and
+// send them to the selected backend
+func (i *StatStack) DoRun() {
+	fmt.Println("StatStack DoRun")
+	for {
+		if len(i.values) > 0 {
+			fmt.Printf("StatStack DoRun: %d in stack\n", len(i.values))
+		}
+		fmt.Printf("StatStack DoRun: paused for %d ms\n", pause_ms)
+		i.FlushInflux()
+		time.Sleep(time.Duration(pause_ms) * time.Millisecond)
 	}
 }
-
-
