@@ -14,7 +14,7 @@ type Injector struct {
 
 func NewInjector() *Injector {
 	i := Injector{}
-	i.Stat = NewStatStack()
+	i.Stat = NewStatStack(i)
 	return (&i)
 }
 

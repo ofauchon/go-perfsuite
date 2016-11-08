@@ -4,6 +4,8 @@ package core
 import "fmt"
 import "log"
 import "time"
+import "sync"
+
 import "github.com/influxdata/influxdb/client/v2"
 
 // pause_ms is the delay in millis between two cycles in DoRun() routine
@@ -11,6 +13,8 @@ const pause_ms int = 500
 const influx_db string = "perfsuite"
 const influx_user string = "username"
 const influx_pass string = "password"
+
+var mutex = &sync.Mutex{}
 
 type StatStack struct {
 	Addr string
@@ -20,6 +24,7 @@ type StatStack struct {
 
 	values []Stat
 	count  int
+	inj		Injector
 }
 
 type Stat struct {
@@ -28,8 +33,8 @@ type Stat struct {
 }
 
 // NewStatStack returns instance of StatStack structure
-func NewStatStack() *StatStack {
-	return &StatStack{values: make([]Stat, 0), count: 0}
+func NewStatStack(pInj Injector) *StatStack {
+	return &StatStack{values: make([]Stat, 0), count: 0, inj: pInj}
 }
 
 // Push adds new statistic to the StatStack buffer
@@ -59,6 +64,7 @@ func (i *StatStack) FlushInflux() {
 		log.Fatalln("Can't create BatchPoints: ", err)
 	}
 
+	mutex.Lock(); 
 	for z := range i.values {
 		stat := i.values[z]
 
@@ -66,13 +72,14 @@ func (i *StatStack) FlushInflux() {
 
 		fields := map[string]interface{}{"value": stat.value}
 
-		fmt.Printf("StatStack : FlushInflux: Add point (%s,%f)\n", stat.name, stat.value)
+		//fmt.Printf("StatStack : FlushInflux: Add point (%s,%f)\n", stat.name, stat.value)
 		point, err := client.NewPoint("stats", tags, fields)
 		if err != nil {
 			log.Fatalln("Can't create Point: ", err)
 		}
 		bp.AddPoint(point)
 	}
+	mutex.Unlock(); 
 
 	err = cli.Write(bp)
 
