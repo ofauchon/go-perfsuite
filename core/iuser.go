@@ -2,7 +2,8 @@ package core
 
 import (
 	"fmt"
-	"github.com/cjoudrey/gluahttp"
+//	"github.com/ofauchon/gluahttp"
+	"../../gluahttp"
 	"github.com/nu7hatch/gouuid"
 	"github.com/yuin/gopher-lua"
 	"net/http"
@@ -64,7 +65,7 @@ func (i *Iuser) CounterEnd(tName string) {
 	if xx, ok := i.Counters[tName]; ok {
 		xx.End = time.Now().UnixNano()
 		tms := (xx.End - xx.Start) / int64(time.Millisecond)
-		fmt.Printf("%s : End counter %s: Delta: %d ms\n", i.Uuid, tName, tms)
+		//fmt.Printf("%s : End counter %s: Delta: %d ms\n", i.Uuid, tName, tms)
 		i.Inj.Stat.Push(tName, (float64)(tms))
 	} else {
 		fmt.Printf("WARN: Counter '%s' can't end while not started\n", tName)
@@ -97,13 +98,13 @@ func (i *Iuser) DoInit() {
 func (i *Iuser) DoRun() {
 	i.Inj.wg.Add(1)
 	defer i.Inj.wg.Done()
-	fmt.Println("Iuser DoRun()")
+	//fmt.Println("Iuser DoRun()")
 	i.CounterStart(i.Uuid + "_DoRun")
 	if err := i.LuaState.DoString(`rrun()`); err != nil {
 		panic(err)
 	}
 	i.CounterEnd(i.Uuid + "_DoRun")
-	fmt.Println("Iuser DoRun() End")
+	//fmt.Println("Iuser DoRun() End")
 }
 func (i *Iuser) DoStop() {
 	//i.CounterStart(i.Uuid + "_DoStart");

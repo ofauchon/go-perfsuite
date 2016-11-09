@@ -37,7 +37,7 @@ func (inj *Injector) Run() {
 
 	for i := 0; i < inj.NUsers; i++ {
 		u := inj.Users[i]
-		go u.DoRun()
+		u.DoRun()
 	}
 	inj.wg.Wait()
 }
