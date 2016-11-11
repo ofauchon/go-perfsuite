@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 //	"github.com/ofauchon/gluahttp"
+	"github.com/yuin/gluare"
 	"../../gluahttp"
 	"github.com/nu7hatch/gouuid"
 	"github.com/yuin/gopher-lua"
@@ -37,10 +38,19 @@ func NewIuser(pInj *Injector) *Iuser {
 	defer Lptr.Close()
 
 	Lptr.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
+	Lptr.PreloadModule("re", gluare.Loader)
+	
 	Lptr.SetGlobal("k_CounterStart", Lptr.NewFunction(newI.k_CounterStart))
-	Lptr.SetGlobal("k_CounterEnd", Lptr.NewFunction(newI.k_CounterEnd))
+	Lptr.SetGlobal("k_CounterStop", Lptr.NewFunction(newI.k_CounterEnd))
+	Lptr.SetGlobal("k_Sleep", Lptr.NewFunction(newI.k_Sleep))
 	newI.LuaState = Lptr
 	return newI
+}
+
+func (i *Iuser) k_Sleep(L *lua.LState) int{
+	ts := (time.Duration)(L.ToInt(1))
+	time.Sleep(ts * time.Millisecond)
+	return 1
 }
 
 /*
@@ -67,6 +77,7 @@ func (i *Iuser) CounterEnd(tName string) {
 		tms := (xx.End - xx.Start) / int64(time.Millisecond)
 		//fmt.Printf("%s : End counter %s: Delta: %d ms\n", i.Uuid, tName, tms)
 		i.Inj.Stat.Push(tName, (float64)(tms))
+		delete(i.Counters, tName)
 	} else {
 		fmt.Printf("WARN: Counter '%s' can't end while not started\n", tName)
 	}

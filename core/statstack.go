@@ -87,6 +87,7 @@ func (i *StatStack) FlushInflux() {
 		log.Fatalln("Can't write batchpoints to InfluxDB: ", err)
 	}
 	fmt.Printf("Data points sent (%d)\n", len(i.values) );
+	i.values=i.values[:0]
 
 }
 
@@ -97,9 +98,9 @@ func (i *StatStack) DoRun() {
 	for {
 		if len(i.values) > 0 {
 			fmt.Printf("StatStack DoRun: %d in stack to be pushed\n", len(i.values))
+			i.FlushInflux()
 		}
 		//fmt.Printf("StatStack DoRun: paused for %d ms\n", pause_ms)
-		i.FlushInflux()
 		time.Sleep(time.Duration(pause_ms) * time.Millisecond)
 	}
 }
