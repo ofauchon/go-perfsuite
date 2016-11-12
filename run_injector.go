@@ -20,11 +20,11 @@ func readFile(pPath string) string{
 
 func main() {
 
+    // Command line flags
 	var cpuprofile = flag.String("cpuprofile", "", "write cpu profile `file`")
 	var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
 	var vusers = flag.Int("vusers", 10, "number of virtual users")
-	var scenario = flag.String("scenario", "", "path to scenario")
-
+	var scenarioFile = flag.String("scenario", "", "path to scenario")
 
     flag.Parse()
     if *cpuprofile != "" {
@@ -38,14 +38,13 @@ func main() {
         defer pprof.StopCPUProfile()
     }
 
-
-	tScen := readFile(*scenario)
+    // Our code
+	tScenario := readFile(*scenarioFile)
 	injector := core.NewInjector()
-	injector.Initialize(*vusers, tScen )
+	injector.Initialize(*vusers, tScenario )
 	injector.Run()
 
-
-
+    // Profiling
     if *memprofile != "" {
         f, err := os.Create(*memprofile)
         if err != nil {

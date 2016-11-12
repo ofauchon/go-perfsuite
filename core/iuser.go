@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+
+const (
+	STATE_USER_STOPPED=0
+	STATE_USER_RUNNING=1
+	STATE_USER_PAUSED=2
+)
+
 type Counter struct {
 	Start int64
 	End   int64
@@ -24,11 +31,14 @@ type Iuser struct {
 	Inj      *Injector
 	Counters map[string]Counter
 	LuaState *lua.LState
-}
 
+	state    int
+}
+// Create an IUser, with LUA runtime
 func NewIuser(pInj *Injector) *Iuser {
 	newI := &Iuser{Counters: make(map[string]Counter)}
 	newI.Inj = pInj
+	newI.state = STATE_USER_STOPPED
 	u4, err := uuid.NewV4()
 	if err != nil {
 		panic("Can't gen uuid")
@@ -40,23 +50,31 @@ func NewIuser(pInj *Injector) *Iuser {
 	Lptr.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	Lptr.PreloadModule("re", gluare.Loader)
 	
-	Lptr.SetGlobal("k_CounterStart", Lptr.NewFunction(newI.k_CounterStart))
-	Lptr.SetGlobal("k_CounterStop", Lptr.NewFunction(newI.k_CounterEnd))
+	Lptr.SetGlobal("k_TransactionStart", Lptr.NewFunction(newI.k_TransactionStart))
+	Lptr.SetGlobal("k_TransactionStop", Lptr.NewFunction(newI.k_TransactionStop))
 	Lptr.SetGlobal("k_Sleep", Lptr.NewFunction(newI.k_Sleep))
+	Lptr.SetGlobal("k_GetId", Lptr.NewFunction(newI.k_GetId))
 	newI.LuaState = Lptr
 	return newI
-}
-
-func (i *Iuser) k_Sleep(L *lua.LState) int{
-	ts := (time.Duration)(L.ToInt(1))
-	time.Sleep(ts * time.Millisecond)
-	return 1
 }
 
 /*
  *  performance wrapped functions
  */
-func (i *Iuser) CounterStart(tName string) {
+func (i *Iuser) k_Sleep(L *lua.LState) int{
+	i.state=STATE_USER_PAUSED
+	ts := (time.Duration)(L.ToInt(1))
+	time.Sleep(ts * time.Millisecond)
+	i.state=STATE_USER_RUNNING	
+	return 1
+}
+
+func (i *Iuser) k_GetId(L *lua.LState) int{
+	tid:=lua.LString(i.Uuid)
+	L.Push(tid)
+	return 1
+}
+func (i *Iuser) TransactionStart(tName string) {
 	if _, ok := i.Counters[tName]; !ok {
 		tCount := Counter{}
 		tCount.Start = time.Now().UnixNano()
@@ -65,13 +83,13 @@ func (i *Iuser) CounterStart(tName string) {
 		fmt.Printf("WARN: Counter '%s' already exisits\n", tName)
 	}
 }
-func (i *Iuser) k_CounterStart(L *lua.LState) int {
+func (i *Iuser) k_TransactionStart(L *lua.LState) int {
 	tName := L.ToString(1)
-	i.CounterStart(tName)
+	i.TransactionStart(tName)
 	return 1
 }
 
-func (i *Iuser) CounterEnd(tName string) {
+func (i *Iuser) TransactionStop(tName string, tStatus int) {
 	if xx, ok := i.Counters[tName]; ok {
 		xx.End = time.Now().UnixNano()
 		tms := (xx.End - xx.Start) / int64(time.Millisecond)
@@ -82,9 +100,11 @@ func (i *Iuser) CounterEnd(tName string) {
 		fmt.Printf("WARN: Counter '%s' can't end while not started\n", tName)
 	}
 }
-func (i *Iuser) k_CounterEnd(L *lua.LState) int {
+
+func (i *Iuser) k_TransactionStop(L *lua.LState) int {
 	tName := L.ToString(1)
-	i.CounterEnd(tName)
+	tStatus := L.ToInt(2)
+	i.TransactionStop(tName,tStatus)
 	return 1
 }
 
@@ -109,14 +129,16 @@ func (i *Iuser) DoInit() {
 func (i *Iuser) DoRun() {
 	i.Inj.wg.Add(1)
 	defer i.Inj.wg.Done()
+	i.state = STATE_USER_RUNNING
 	//fmt.Println("Iuser DoRun()")
-	i.CounterStart(i.Uuid + "_DoRun")
+	i.TransactionStart(i.Uuid + "_DoRun")
 	if err := i.LuaState.DoString(`rrun()`); err != nil {
 		panic(err)
 	}
-	i.CounterEnd(i.Uuid + "_DoRun")
-	//fmt.Println("Iuser DoRun() End")
+	i.TransactionStop(i.Uuid + "_DoRun", 1)
+	fmt.Println(i.Uuid + "Iuser DoRun() End")
 }
+
 func (i *Iuser) DoStop() {
 	//i.CounterStart(i.Uuid + "_DoStart");
 	if err := i.LuaState.DoString(`rstop()`); err != nil {
