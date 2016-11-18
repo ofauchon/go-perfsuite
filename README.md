@@ -24,12 +24,14 @@ go run run_injector.go -vuser 20    To run 20 Concurrent vusers
 # Profiling 
 
 
-Build and generate cpu and memory profile
+Build and generate cpu and memory profile: 
 
 ```
 go build run_injector.go
 ./run_injector -cpuprofile cpu.prof -memprofile mem.prof
 ```
+
+Analyze profile : 
 
 ```
 $ go tool pprof run_injector cpu.prof
