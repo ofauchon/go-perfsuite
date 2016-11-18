@@ -16,22 +16,22 @@ Main goals are:
 # Quick start
 
 
-``
+```
 go run run_injector.go  			To run 10 concurent virtual users (default
 go run run_injector.go -vuser 20    To run 20 Concurrent vusers
-``
+```
 
 # Profiling 
 
 
 Build and generate cpu and memory profile
 
-``
+```
 go build run_injector.go
 ./run_injector -cpuprofile cpu.prof -memprofile mem.prof
-``
+```
 
-``
+```
 $ go tool pprof run_injector cpu.prof
 (pprof) top
 400ms of 520ms total (76.92%)
@@ -51,6 +51,6 @@ Showing top 10 nodes out of 222 (cum >= 10ms)
 
 
 go tool pprof -alloc_objects run_injector mem.prof
-``
+```
 
 
