@@ -23,7 +23,7 @@ func main() {
     // Command line flags
 	var cpuprofile = flag.String("cpuprofile", "", "write cpu profile `file`")
 	var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
-	var vusers = flag.Int("vusers", 10, "number of virtual users")
+	//var vusers = flag.Int("vusers", 10, "number of virtual users")
 	var scenarioFile = flag.String("scenario", "", "path to scenario")
 
     flag.Parse()
@@ -41,7 +41,9 @@ func main() {
     // Our code
 	tScenario := readFile(*scenarioFile)
 	injector := core.NewInjector()
-	injector.Initialize(*vusers, tScenario )
+	injector.Initialize(tScenario )
+    injector.SetRamp([]int64{1,60,0,180,2,120,0,3600})
+
 	injector.Run()
 
     // Profiling

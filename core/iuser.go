@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-//	"github.com/ofauchon/gluahttp"
+	"encoding/base64"
 	"github.com/yuin/gluare"
 	"../../gluahttp"
 	"github.com/nu7hatch/gouuid"
@@ -54,6 +54,7 @@ func NewIuser(pInj *Injector) *Iuser {
 	Lptr.SetGlobal("k_TransactionStop", Lptr.NewFunction(newI.k_TransactionStop))
 	Lptr.SetGlobal("k_Sleep", Lptr.NewFunction(newI.k_Sleep))
 	Lptr.SetGlobal("k_GetId", Lptr.NewFunction(newI.k_GetId))
+	Lptr.SetGlobal("k_b64enc", Lptr.NewFunction(newI.k_b64enc))
 	newI.LuaState = Lptr
 	return newI
 }
@@ -72,6 +73,12 @@ func (i *Iuser) k_Sleep(L *lua.LState) int{
 func (i *Iuser) k_GetId(L *lua.LState) int{
 	tid:=lua.LString(i.Uuid)
 	L.Push(tid)
+	return 1
+}
+func (i *Iuser) k_b64enc(L *lua.LState) int{
+	tstr:=L.ToString(1)
+	rb64:=base64.StdEncoding.EncodeToString([]byte(tstr))
+	L.Push(lua.LString(rb64))
 	return 1
 }
 func (i *Iuser) TransactionStart(tName string) {
