@@ -51,10 +51,11 @@ func (inj *Injector) UpdateSpeed() {
 	cSec := (int64)(time.Now().Sub(inj.startTime)/time.Second)
 
 
+
 	for v:=0; v < len(inj.ramp); v+=2 {
 		cStepRate:=inj.ramp[v]
 		cStepDura:=inj.ramp[v+1]
-	//	fmt.Printf("UpdateSpeed v=%d  Rate=%d Duration=%d cSec=%d, sumVusers=%d\n", v, cStepRate, cStepDura, cSec, sumVusers)
+		//fmt.Printf("UpdateSpeed v=%d  Rate=%d Duration=%d cSec=%d, sumVusers=%d\n", v, cStepRate, cStepDura, cSec, sumVusers)
 		if (cSec>cStepDura){
 			sumVusers+=cStepRate*cStepDura
 			cSec -= cStepDura
@@ -67,7 +68,7 @@ func (inj *Injector) UpdateSpeed() {
 	}
 
 	delta := sumVusers - int64(len(inj.Users))
-	fmt.Printf("We should be at %d, and current is :%d, we need to add:%d\n", int64(len(inj.Users)), sumVusers, delta)
+	fmt.Printf("Elapsed time(s):%d Computed Requested Vusers: %d, Current Vusers :%d, we need to add:%d\n", cSec, sumVusers, int64(len(inj.Users)), delta)
 
 	for i:=int64(0);i<delta;i++ {
 		u := NewIuser(inj)
