@@ -5,6 +5,7 @@ package core
 import "log"
 import "time"
 import "sync"
+
 //import "fmt"
 
 import "github.com/influxdata/influxdb/client/v2"
@@ -25,7 +26,7 @@ type StatStack struct {
 
 	values []Stat
 	count  int
-	inj		*Injector
+	inj    *Injector
 }
 
 type Stat struct {
@@ -65,7 +66,7 @@ func (i *StatStack) FlushInflux() {
 		log.Fatalln("Can't create BatchPoints: ", err)
 	}
 
-	mutex.Lock(); 
+	mutex.Lock()
 	for z := range i.values {
 		stat := i.values[z]
 
@@ -80,7 +81,7 @@ func (i *StatStack) FlushInflux() {
 		}
 		bp.AddPoint(point)
 	}
-	mutex.Unlock(); 
+	mutex.Unlock()
 
 	err = cli.Write(bp)
 
@@ -88,7 +89,7 @@ func (i *StatStack) FlushInflux() {
 		log.Fatalln("Can't write batchpoints to InfluxDB: ", err)
 	}
 	//fmt.Printf("StatStack :: Data points sent (%d)\n", len(i.values) );
-	i.values=i.values[:0]
+	i.values = i.values[:0]
 
 	cli.Close()
 
@@ -100,12 +101,10 @@ func (i *StatStack) DoRun() {
 	//fmt.Println("StatStack DoRun")
 	for {
 		// Push intenal stats
-		state :=i.inj.GetState()
-		i.Push("iusers_stopped", (float64)(state[STATE_USER_STOPPED]) )
-		i.Push("iusers_running", (float64)(state[STATE_USER_RUNNING]) )
-		i.Push("iusers_paused", (float64)(state[STATE_USER_PAUSED]) )
-
-
+		state := i.inj.GetState()
+		i.Push("iusers_stopped", (float64)(state[STATE_USER_STOPPED]))
+		i.Push("iusers_running", (float64)(state[STATE_USER_RUNNING]))
+		i.Push("iusers_paused", (float64)(state[STATE_USER_PAUSED]))
 
 		if len(i.values) > 0 {
 			//fmt.Printf("StatStack DoRun: %d in stack to be pushed\n", len(i.values))

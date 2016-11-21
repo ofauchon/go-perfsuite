@@ -1,21 +1,20 @@
 package core
 
 import (
-	"fmt"
-	"encoding/base64"
-	"github.com/yuin/gluare"
 	"../../gluahttp"
+	"encoding/base64"
+	"fmt"
 	"github.com/nu7hatch/gouuid"
+	"github.com/yuin/gluare"
 	"github.com/yuin/gopher-lua"
 	"net/http"
 	"time"
 )
 
-
 const (
-	STATE_USER_STOPPED=0
-	STATE_USER_RUNNING=1
-	STATE_USER_PAUSED=2
+	STATE_USER_STOPPED = 0
+	STATE_USER_RUNNING = 1
+	STATE_USER_PAUSED  = 2
 )
 
 type Counter struct {
@@ -32,8 +31,9 @@ type Iuser struct {
 	Counters map[string]Counter
 	LuaState *lua.LState
 
-	state    int
+	state int
 }
+
 // Create an IUser, with LUA runtime
 func NewIuser(pInj *Injector) *Iuser {
 	newI := &Iuser{Counters: make(map[string]Counter)}
@@ -49,7 +49,7 @@ func NewIuser(pInj *Injector) *Iuser {
 
 	Lptr.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	Lptr.PreloadModule("re", gluare.Loader)
-	
+
 	Lptr.SetGlobal("k_TransactionStart", Lptr.NewFunction(newI.k_TransactionStart))
 	Lptr.SetGlobal("k_TransactionStop", Lptr.NewFunction(newI.k_TransactionStop))
 	Lptr.SetGlobal("k_Sleep", Lptr.NewFunction(newI.k_Sleep))
@@ -62,22 +62,22 @@ func NewIuser(pInj *Injector) *Iuser {
 /*
  *  performance wrapped functions
  */
-func (i *Iuser) k_Sleep(L *lua.LState) int{
-	i.state=STATE_USER_PAUSED
+func (i *Iuser) k_Sleep(L *lua.LState) int {
+	i.state = STATE_USER_PAUSED
 	ts := (time.Duration)(L.ToInt(1))
 	time.Sleep(ts * time.Millisecond)
-	i.state=STATE_USER_RUNNING	
+	i.state = STATE_USER_RUNNING
 	return 1
 }
 
-func (i *Iuser) k_GetId(L *lua.LState) int{
-	tid:=lua.LString(i.Uuid)
+func (i *Iuser) k_GetId(L *lua.LState) int {
+	tid := lua.LString(i.Uuid)
 	L.Push(tid)
 	return 1
 }
-func (i *Iuser) k_b64enc(L *lua.LState) int{
-	tstr:=L.ToString(1)
-	rb64:=base64.StdEncoding.EncodeToString([]byte(tstr))
+func (i *Iuser) k_b64enc(L *lua.LState) int {
+	tstr := L.ToString(1)
+	rb64 := base64.StdEncoding.EncodeToString([]byte(tstr))
 	L.Push(lua.LString(rb64))
 	return 1
 }
@@ -111,7 +111,7 @@ func (i *Iuser) TransactionStop(tName string, tStatus int) {
 func (i *Iuser) k_TransactionStop(L *lua.LState) int {
 	tName := L.ToString(1)
 	tStatus := L.ToInt(2)
-	i.TransactionStop(tName,tStatus)
+	i.TransactionStop(tName, tStatus)
 	return 1
 }
 
@@ -142,7 +142,7 @@ func (i *Iuser) DoRun() {
 	if err := i.LuaState.DoString(`rrun()`); err != nil {
 		panic(err)
 	}
-	i.TransactionStop(i.Uuid + "_DoRun", 1)
+	i.TransactionStop(i.Uuid+"_DoRun", 1)
 	fmt.Println(i.Uuid + "Iuser DoRun() End")
 }
 

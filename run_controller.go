@@ -2,10 +2,9 @@ package main
 
 import "./core"
 
-
 func main() {
 
-    ctrl := core.NewControllerInstance()
-    ctrl.StartHttpServer()
+	ctrl := core.NewControllerInstance()
+	ctrl.StartHttpServer()
 
 }
