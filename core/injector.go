@@ -33,7 +33,7 @@ func (inj *Injector) Run() {
 	for shootAgain := bool(true); shootAgain == true; {
 
 		shootAgain = inj.UpdateSpeed()
-		time.Sleep(time.Millisecond * 5000)
+		time.Sleep(time.Millisecond * 1000)
 	}
 	fmt.Printf("*** Test done ***\n")
 }
@@ -43,14 +43,14 @@ func (inj *Injector) UpdateSpeed() bool {
 	sumVusers := int64(0)
 	cSec := (int64)(time.Now().Sub(inj.startTime) / time.Second) //#sec after start of the test
 	if cSec > inj.rampDuration {
-		fmt.Printf("Run lasted: %d and rampDuration %d \n", cSec, inj.rampDuration)
+		//fmt.Printf("Run lasted: %d and rampDuration %d \n", cSec, inj.rampDuration)
 		return false
 	}
 
 	for v := 0; v < len(inj.ramp); v += 2 {
 		cStepRate := inj.ramp[v]
 		cStepDura := inj.ramp[v+1]
-		fmt.Printf("UpdateSpeed v=%d  Rate=%d Duration=%d cSec=%d, sumVusers=%d\n", v, cStepRate, cStepDura, cSec, sumVusers)
+		//fmt.Printf("UpdateSpeed v=%d  Rate=%d Duration=%d cSec=%d, sumVusers=%d\n", v, cStepRate, cStepDura, cSec, sumVusers)
 
 		if cSec > cStepDura {
 			sumVusers += cStepRate * cStepDura
