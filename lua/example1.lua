@@ -60,7 +60,7 @@ function rrun()
     ---print(k_GetId() .. "Resume from pause, starting action1")
     k_TransactionStart("action1_login_page")
 
-    authent = _createBasicAuthHeader("olivier", "ah8dk2v6")
+    authent = _createBasicAuthHeader("olivier", "XXXXXXXX")
     resp, error_message = http.request("GET", "https://secure.aixmarseille.com/mail/", {
     headers={ 
         ["Accept"]="*/*", 
