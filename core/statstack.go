@@ -8,7 +8,7 @@ import "sync"
 
 //import "fmt"
 
-import "github.com/influxdata/influxdb/client/v2"
+import client "github.com/influxdata/influxdb1-client/v2"
 
 // pause_ms is the delay in millis between two cycles in DoRun() routine
 const pause_ms int = 5000

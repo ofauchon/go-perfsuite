@@ -1,13 +1,20 @@
 package core
 
-import "sync"
-import "fmt"
-import "time"
+import (
+	"fmt"
+	"os"
+	"plugin"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/ofauchon/go-perfsuite/api"
+)
 
 type Injector struct {
 	Users          []*Iuser
 	wg             sync.WaitGroup
-	scenario       string
+	plugin         *plugin.Plugin
 	ramp           []int64
 	rampDuration   int64
 	elapsedSeconds int64
@@ -17,18 +24,33 @@ type Injector struct {
 
 func NewInjector() *Injector {
 	i := &Injector{}
-	i.Stat = NewStatStack(i)
+	//i.Stat = NewStatStack(i)
 	return (i)
 }
 
-func (inj *Injector) Initialize(pScenario string) {
-	inj.scenario = pScenario
+func (inj *Injector) Initialize(scriptFile string) {
+
+	if !strings.HasSuffix(strings.ToLower(scriptFile), ".go") {
+		fmt.Printf("Script file (%s) must end with .go extension\n", scriptFile)
+		os.Exit(1)
+	}
+
+	soFile := scriptFile[0:len(scriptFile)-3] + ".so"
+	fmt.Println("Loading script plugin " + soFile)
+	var err error
+	inj.plugin, err = plugin.Open(soFile)
+	if err != nil {
+		fmt.Printf("Can't load associated .so file (%s), did you build it ?\n", soFile)
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 }
 
 // Run start an infinite loop for starting, stopping iusers
 func (inj *Injector) Run() {
 	inj.startTime = time.Now()
-	go inj.Stat.DoRun()
+	//go inj.Stat.DoRun()
 
 	for shootAgain := bool(true); shootAgain == true; {
 
@@ -69,7 +91,24 @@ func (inj *Injector) UpdateSpeed() bool {
 	for i := int64(0); i < delta; i++ {
 		u := NewIuser(inj)
 		u.Uuid = fmt.Sprintf("uuid_%05d", len(inj.Users))
-		u.LoadScenarioString(inj.scenario)
+
+		// Instanciate plugin instance for every VU
+		s1, err := inj.plugin.Lookup("NewScenario")
+		if err != nil {
+			fmt.Printf("Damned, no 'scenario' in .so script")
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		s2, ok := s1.(func(*Iuser) api.Iscenario)
+		fmt.Printf("result: %T %v %v\n", s2, s2, ok)
+
+		if !ok {
+			fmt.Println("unexpected type from module symbol")
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		u.Scenario = s2(u)
+
 		u.DoInit()
 		go u.DoRun()
 		inj.Users = append(inj.Users, u)

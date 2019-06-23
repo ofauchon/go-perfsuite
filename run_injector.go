@@ -1,23 +1,14 @@
 package main
 
-import "./core"
+import "github.com/ofauchon/go-perfsuite/core"
 import "flag"
 import "os"
 import "runtime/pprof"
 import "log"
-import "io/ioutil"
+
 import "runtime"
 import "strings"
 import "strconv"
-
-func readFile(pPath string) string {
-	dat, err := ioutil.ReadFile(pPath)
-	if err != nil {
-		log.Fatal("Can't open file")
-	}
-
-	return string(dat)
-}
 
 func parseRampUp(s string) ([]int64, error) {
 	ramp := strings.Split(s, ",")
@@ -38,7 +29,7 @@ func main() {
 	var cpuprofile = flag.String("cpuprofile", "", "write cpu profile `file`")
 	var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
 	var rampup = flag.String("rampup", "", "Ramp-up profile : ex 2,10,0,180,1,20,0,360")
-	var scenarioFile = flag.String("scenario", "", "path to scenario")
+	var scenarioFile = flag.String("scenario", "", "path to go scenario (.go file)")
 
 	flag.Parse()
 	if *cpuprofile != "" {
@@ -62,9 +53,8 @@ func main() {
 	}
 
 	// Our code
-	tScenario := readFile(*scenarioFile)
 	injector := core.NewInjector()
-	injector.Initialize(tScenario)
+	injector.Initialize(*scenarioFile)
 	injector.SetRamp(ramp)
 
 	injector.Run()
