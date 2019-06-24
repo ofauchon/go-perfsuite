@@ -2,13 +2,13 @@ package core
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"plugin"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/ofauchon/go-perfsuite/api"
 )
 
 type Injector struct {
@@ -36,8 +36,18 @@ func (inj *Injector) Initialize(scriptFile string) {
 	}
 
 	soFile := scriptFile[0:len(scriptFile)-3] + ".so"
+	/*
+		_, err := os.Stat(soFile)
+		fmt.Println("No " + soFile + ", trying to build it ")
+	*/
+	fmt.Println("Building " + scriptFile)
+	cmd := exec.Command(`go`, `build`, `-o`, soFile, `-buildmode=plugin`, scriptFile)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Println("Loading script plugin " + soFile)
-	var err error
 	inj.plugin, err = plugin.Open(soFile)
 	if err != nil {
 		fmt.Printf("Can't load associated .so file (%s), did you build it ?\n", soFile)
@@ -90,7 +100,6 @@ func (inj *Injector) UpdateSpeed() bool {
 
 	for i := int64(0); i < delta; i++ {
 		u := NewIuser(inj)
-		u.Uuid = fmt.Sprintf("uuid_%05d", len(inj.Users))
 
 		// Instanciate plugin instance for every VU
 		s1, err := inj.plugin.Lookup("NewScenario")
@@ -99,8 +108,8 @@ func (inj *Injector) UpdateSpeed() bool {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		s2, ok := s1.(func(*Iuser) api.Iscenario)
-		fmt.Printf("result: %T %v %v\n", s2, s2, ok)
+		s2, ok := s1.(func(*Iuser) Iscenario)
+		//fmt.Printf("result: %T %v %v\n", s2, s2, ok)
 
 		if !ok {
 			fmt.Println("unexpected type from module symbol")

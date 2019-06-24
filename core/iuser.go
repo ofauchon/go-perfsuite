@@ -5,7 +5,6 @@ import (
 	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
-	"github.com/ofauchon/go-perfsuite/api"
 )
 
 const (
@@ -21,7 +20,7 @@ type Counter struct {
 
 type Iuser struct {
 	Uuid     string
-	Scenario api.Iscenario
+	Scenario Iscenario
 	NRuns    int
 	Id       int
 	Inj      *Injector
