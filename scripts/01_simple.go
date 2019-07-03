@@ -14,11 +14,14 @@ type Scenario struct {
 	user *core.Iuser
 }
 
+func (s Scenario) InitOnce() {
+}
+
 func (s Scenario) Init() {
 	/*fmt.Println("Init user " + s.user.Uuid)*/
 }
 
-func (s Scenario) Start() {
+func (s Scenario) Run() {
 	for {
 		/*fmt.Println("Start " + s.user.Uuid)*/
 		resp, err := http.Get("http://www.oflabs.com")

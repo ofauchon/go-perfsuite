@@ -13,6 +13,9 @@ type Scenario struct {
 	user *core.Iuser
 }
 
+func (s Scenario) InitOnce() {
+}
+
 func (s Scenario) Init() {
 	/*fmt.Println("Init user " + s.user.Uuid)*/
 }
