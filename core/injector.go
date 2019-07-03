@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -44,8 +45,13 @@ func (inj *Injector) Initialize(scriptFile string) {
 	*/
 	fmt.Println("Building " + scriptFile)
 	cmd := exec.Command(`go`, `build`, `-o`, soFile, `-buildmode=plugin`, scriptFile)
+	var outb, errb bytes.Buffer
+	cmd.Stdout = &outb
+	cmd.Stderr = &errb
+
 	err := cmd.Run()
 	if err != nil {
+		fmt.Println("out:", outb.String(), "err:", errb.String())
 		log.Fatal(err)
 	}
 

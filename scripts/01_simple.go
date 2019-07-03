@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ofauchon/go-perfsuite/core"
+	"github.com/ofauchon/loadwizard/core"
 )
 
 type Scenario struct {
