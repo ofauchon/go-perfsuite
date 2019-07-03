@@ -4,19 +4,20 @@
 
 Loadwizard is an attempt to write my own load generator in Go.
 
-  * Design choices
+Design choices
 
-- Use Golang for the load generation engine
+- Use Golang for the load generator
 - Use Golang for performance scripts (go script built built as .so plugins)
 - Implement common basic injection features (RampUp, Rendezvous ...) 
 - Send metrics and logs (InfluxDB, Graphite, Elk)
 
-  * Why Golang ?
+Why Golang ?
 
-It's a cool, fast, flexible & powerfull language, It was an evidence the core injection part of the project would use it. 
-After making  experiments with Lua and Js engine, I found out it would be more efficient and fast to write injection scripts in go, too.
+It's a cool, fast, flexible & powerfull language.
+It evident the core injection part of the project would be in go.
+After making  experiments with LUA and JS engines, I found out it would be more efficient and fast to write injection scripts in go, too.
 
-I choosed the 'plugin' Go approach to decouplate the build of loadwizard, and the build of customs performance scripts.
+I choosed the 'GO plugin' approach to isolate loadwizard core and custom performance scripts
 
 # Quick start
 
@@ -49,6 +50,7 @@ Build and generate cpu and memory profile:
 ```
 go build run_injector.go
 ./run_injector -scenario myscenario.lua -rampup 1,180,0,200 -cpuprofile prof/cpu.prof -memprofile prof/mem.prof
+./run_injector.go -scenario scripts/simple.go -rampup 25,100,0,200 -cpuprofile prof/cpu.prof -memprofile prof/mem.prof
 ```
 
 Analyze profile : 
@@ -89,3 +91,4 @@ Showing top 5 nodes out of 150 (cum >= 481762)
 ```
 
 
+ 
