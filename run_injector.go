@@ -1,6 +1,6 @@
 package main
 
-import "github.com/ofauchon/go-perfsuite/core"
+import "github.com/ofauchon/loadwizard/core"
 import "flag"
 import "os"
 import "runtime/pprof"

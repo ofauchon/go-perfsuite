@@ -1,7 +1,8 @@
 package core
 
 type Iscenario interface {
+	InitOnce()
 	Init()
-	Start()
+	Run()
 	Stop()
 }

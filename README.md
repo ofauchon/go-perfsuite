@@ -1,31 +1,44 @@
-go-perfsuite : Performance Testing Suite in Go
-
-
+##Loadwizard : Load injector for Gophers##
 
 # Introduction
 
-I started this project with no exact idea how far it would go.
+Loadwizard is an attempt to write my own load generator in Go.
 
-Main goals are: 
+  * Design choices
 
-- Use Go Language for the engine
-- Use LUA for scripting 
-- Implement common injection features (RampUp, Rendezvous ...) 
-- Use influxdb and graphite for metrics storage and rendering
+- Use Golang for the load generation engine
+- Use Golang for performance scripts (go script built built as .so plugins)
+- Implement common basic injection features (RampUp, Rendezvous ...) 
+- Send metrics and logs (InfluxDB, Graphite, Elk)
+
+  * Why Golang ?
+
+It's a cool, fast, flexible & powerfull language, It was an evidence the core injection part of the project would use it. 
+After making  experiments with Lua and Js engine, I found out it would be more efficient and fast to write injection scripts in go, too.
+
+I choosed the 'plugin' Go approach to decouplate the build of loadwizard, and the build of customs performance scripts.
 
 # Quick start
 
+```
+go run run_injector.go -scenario scripts/simple.go -rampup 25,100,0,200
+```
+
+ -scenario scripts/simple.go    ( Scenario to run  )
+ -rampup 25,100,0,200           ( Rampup profile )
+
+
+# Configuration 
+
+  * Rampup
 
 ```
-go run run_injector.go -scenario myscript.lua -rampup 1,10 
-=> Starts test with 'myscript.lua' scenario, and add 1 vuser per second, for 10 second
+-rampup 2,60,0,200,10,60,0,3600
 
-Another ramp up example :  -rampup 1,60,0,200,10,60,0,3600
-
-1,60  -> Add 1 vuser/s for 60s    ( 1*60 = 60 more users
-0,200 -> Add 0 vuser/s for 200s   ( No vuser increment for 200s)
+2,60  -> Add 2 vuser/s for 60s    ( 2*60 = 120 users after 60s)
+0,200 -> Add 0 vuser/s for 200s   ( No more vuser  for 200s)
 10,60 -> Add 10 vuser/s for 60s   ( 10*60 = 600 more users ) 
-0,3600 -> Add 0 vuser/s for 3600s ( No vuser increment for 3600s)
+0,3600 -> Add 0 vuser/s for 3600s ( No more vuser for 3600s)
 ```
 
 # Profiling 

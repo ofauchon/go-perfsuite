@@ -20,10 +20,12 @@ type Injector struct {
 	elapsedSeconds int64
 	startTime      time.Time
 	Stat           *StatStack
+	Repository     map[string]interface{}
 }
 
 func NewInjector() *Injector {
 	i := &Injector{}
+	i.Repository = make(map[string]interface{})
 	//i.Stat = NewStatStack(i)
 	return (i)
 }
@@ -96,10 +98,11 @@ func (inj *Injector) UpdateSpeed() bool {
 	}
 
 	delta := sumVusers - int64(len(inj.Users))
-	fmt.Printf("Elapsed time(s):%d Computed Requested Vusers: %d, Current Vusers :%d, we need to add:%d\n", cSec, sumVusers, int64(len(inj.Users)), delta)
+	//fmt.Printf("Elapsed time(s):%d Computed Requested Vusers: %d, Current Vusers :%d, we need to add:%d\n", cSec, sumVusers, int64(len(inj.Users)), delta)
 
 	for i := int64(0); i < delta; i++ {
 		u := NewIuser(inj)
+		inj.Users = append(inj.Users, u)
 
 		// Instanciate plugin instance for every VU
 		s1, err := inj.plugin.Lookup("NewScenario")
@@ -116,11 +119,15 @@ func (inj *Injector) UpdateSpeed() bool {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+		// Instanciate a new scenario for the user
 		u.Scenario = s2(u)
 
+		// This is our first user, run InitOnce
+		if len(inj.Users) == 1 {
+			u.DoInitOnce()
+		}
 		u.DoInit()
 		go u.DoRun()
-		inj.Users = append(inj.Users, u)
 	}
 
 	return true

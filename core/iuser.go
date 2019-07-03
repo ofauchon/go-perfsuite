@@ -71,6 +71,12 @@ func (i *Iuser) LoadScenarioString(pScenario string) {
 
 }
 
+func (i *Iuser) DoInitOnce() {
+	//i.CounterStart(i.Uuid + "_DoInit");
+	i.Scenario.InitOnce()
+	//i.CounterEnd(i.Uuid + "_DoInit");
+}
+
 func (i *Iuser) DoInit() {
 	//i.CounterStart(i.Uuid + "_DoInit");
 	i.Scenario.Init()
@@ -82,7 +88,7 @@ func (i *Iuser) DoRun() {
 	defer i.Inj.wg.Done()
 	i.state = STATE_USER_RUNNING
 	//fmt.Println("Iuser DoRun()")
-	i.Scenario.Start()
+	i.Scenario.Run()
 	//i.TransactionStop(i.Uuid+"_DoRun", 1)
 	fmt.Println(i.Uuid + "Iuser DoRun() End")
 }
