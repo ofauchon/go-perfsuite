@@ -22,7 +22,18 @@ I choosed the 'GO plugin' approach to isolate loadwizard core and custom perform
 # Quick start
 
 ```
-go run run_injector.go -scenario scripts/simple.go -rampup 25,100,0,200
+git clone https://github.com/ofauchon/loadwizard.git
+cd $GOPATH/src/github.com/ofauchon/loadwizard
+go build
+go install
+
+cd scripts/dataset
+gunzip top-1m.csv.gz
+
+cd ../..
+go build
+./loadwizard -scenario scripts/03_csvsource.go -rampup 1,10,0,100
+
 ```
 
  -scenario scripts/simple.go    ( Scenario to run  )
