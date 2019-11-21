@@ -1,21 +1,19 @@
-##Loadwizard : Load injector for Gophers##
+# Loadwizard : Load generator in GO
 
-# Introduction
+Loadwizard is an attempt to write a new load generator in Go.
 
-Loadwizard is an attempt to write my own load generator in Go.
+Features:
 
-Design choices
-
-- Use Golang for the load generator
-- Use Golang for performance scripts (go script built built as .so plugins)
-- Implement common basic injection features (RampUp, Rendezvous ...) 
-- Send metrics and logs (InfluxDB, Graphite, Elk)
+- Only one language (GO) for both load generator core components and performance scripts 
+- Basic injection features at first (constant load, RampUp)
+- No onboard metrics and logs processing (everything sent to InfluxDB, Graphite or Elk)
 
 Why Golang ?
 
-It's a cool, fast, flexible & powerfull language.
-It evident the core injection part of the project would be in go.
-After making  experiments with LUA and JS engines, I found out it would be more efficient and fast to write injection scripts in go, too.
+First, It's a cool language. But it's also fast and flexible...
+
+Experiments with LUA and JS based load generators convinced me a full-GO solution would be
+more efficient.
 
 I choosed the 'GO plugin' approach to isolate loadwizard core and custom performance scripts
 
@@ -34,24 +32,10 @@ cd ../..
 go build
 ./loadwizard -scenario scripts/03_csvsource.go -rampup 1,10,0,100
 
-```
-
- -scenario scripts/simple.go    ( Scenario to run  )
- -rampup 25,100,0,200           ( Rampup profile )
-
-
-# Configuration 
-
-  * Rampup
+Rampup : Add 1 user every second for 10 seconds, then add 0 users/sec for 100s
 
 ```
--rampup 2,60,0,200,10,60,0,3600
 
-2,60  -> Add 2 vuser/s for 60s    ( 2*60 = 120 users after 60s)
-0,200 -> Add 0 vuser/s for 200s   ( No more vuser  for 200s)
-10,60 -> Add 10 vuser/s for 60s   ( 10*60 = 600 more users ) 
-0,3600 -> Add 0 vuser/s for 3600s ( No more vuser for 3600s)
-```
 
 # Profiling 
 
@@ -59,9 +43,9 @@ go build
 Build and generate cpu and memory profile: 
 
 ```
-go build run_injector.go
-./run_injector -scenario myscenario.lua -rampup 1,180,0,200 -cpuprofile prof/cpu.prof -memprofile prof/mem.prof
-./run_injector.go -scenario scripts/simple.go -rampup 25,100,0,200 -cpuprofile prof/cpu.prof -memprofile prof/mem.prof
+go build
+mkdif prof
+./loadwizard -scenario scripts/03_csvsource.go -rampup 1,10,0,100 -cpuprofile prof/cpu.prof -memprofile prof/mem.prof
 ```
 
 Analyze profile : 
