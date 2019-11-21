@@ -22,7 +22,7 @@ I choosed the 'GO plugin' approach to isolate loadwizard core and custom perform
 # Quick start
 
 ```
-git clone https://github.com/ofauchon/loadwizard.git
+go get github.com/ofauchon/loadwizard
 cd $GOPATH/src/github.com/ofauchon/loadwizard
 go build
 go install
