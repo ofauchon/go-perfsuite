@@ -1,14 +1,18 @@
 package main
 
-import "github.com/ofauchon/loadwizard/core"
-import "flag"
-import "os"
-import "runtime/pprof"
-import "log"
+import (
+	"flag"
+	"log"
+	"os"
+	"runtime/pprof"
 
-import "runtime"
-import "strings"
-import "strconv"
+	"github.com/ofauchon/loadwizard/core"
+	"github.com/ofauchon/loadwizard/plugins"
+
+	"runtime"
+	"strconv"
+	"strings"
+)
 
 func parseRampUp(s string) ([]int64, error) {
 	ramp := strings.Split(s, ",")
@@ -54,9 +58,12 @@ func main() {
 
 	// Our code
 	injector := core.NewInjector()
+	// Admin server
+	server := plugins.NewAdminServer(injector)
+	go server.StartServer()
+
 	injector.Initialize(*scenarioFile)
 	injector.SetRamp(ramp)
-
 	injector.Run()
 
 	// Profiling
